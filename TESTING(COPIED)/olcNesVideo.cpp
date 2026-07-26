@@ -71,11 +71,13 @@
 	David Barr, aka javidx9, ©OneLoneCoder 2019
 */
 
+//! To run use the following command: g++ -std=c++17 -I. "TESTING(COPIED)/olcNesVideo.cpp" Bus.cpp olc6502.cpp -o "TESTING(COPIED)/olcNesVideo" -lX11 -lGL -lpthread -lpng && ./TESTING(COPIED)/olcNesVideo
+
 #include <iostream>
 #include <sstream>
 
-#include "Bus.h"
-#include "olc6502.h"
+#include "../Bus.h"
+#include "../olc6502.h"
 
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"

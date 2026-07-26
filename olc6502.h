@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------------
+// File: olc6502.h
+// Description: Interface of the 6502 CPU core.
+// Based on the olcNES architecture by David Barr (javidx9 / OneLoneCoder).
+// -----------------------------------------------------------------------------
+
 #pragma once
 #include <cstdint>
 #include <string>

@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------------
+// File: Bus.cpp
+// Description: Implementation of the bus for the 6502 CPU core.
+// Based on the olcNES architecture by David Barr (javidx9 / OneLoneCoder).
+// -----------------------------------------------------------------------------
+
 #include "Bus.h"
 
 Bus::Bus() {

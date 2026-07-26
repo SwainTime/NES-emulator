@@ -1,3 +1,9 @@
+// -----------------------------------------------------------------------------
+// File: olc6502.cpp
+// Description: Implementation of the 6502 CPU core.
+// Based on the olcNES architecture by David Barr (javidx9 / OneLoneCoder).
+// -----------------------------------------------------------------------------
+
 #include "olc6502.h"
 #include "Bus.h"    
 
