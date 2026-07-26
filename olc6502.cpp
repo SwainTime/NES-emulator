@@ -66,15 +66,16 @@ void olc6502::reset() {
     addrAbs = 0xFFFC;
     uint16_t lowBytes = read(addrAbs);
     uint16_t highBytes = read(addrAbs + 1);
+    pc = (highBytes << 8) | lowBytes;
     cycles = 8;
 }
 
 void olc6502::irq() {
     if(getFlag(I) == 0) {
         //It first writes the pc to the stack
-        write(0x0100 + stp, (pc >> 8) && 0x00FF);
+        write(0x0100 + stp, (pc >> 8) & 0x00FF);
         stp--;
-        write(0x0100 + stp, pc >> 8 && 0x00FF);
+        write(0x0100 + stp, pc & 0x00FF);
         stp--;
 
         setFlag(B, 0);
@@ -95,9 +96,9 @@ void olc6502::irq() {
 void olc6502::nmi() {
     if(getFlag(I) == 0) {
         //It first writes the pc to the stack
-        write(0x0100 + stp, (pc >> 8) && 0x00FF);
+        write(0x0100 + stp, (pc >> 8) & 0x00FF);
         stp--;
-        write(0x0100 + stp, pc >> 8 && 0x00FF);
+        write(0x0100 + stp, pc & 0x00FF);
         stp--;
 
         setFlag(B, 0);
@@ -196,7 +197,7 @@ uint8_t olc6502::IND() {
     uint16_t pointer = (highBytes << 8) + lowBytes;
 
     if(lowBytes == 0x00FF)
-        addrAbs = (pointer & 0xFF00) << 8 + read(pointer); // Bug in hardware
+        addrAbs = ((pointer & 0xFF00) | read(pointer)); // Bug in hardware
     else 
         addrAbs = (read(pointer + 1) << 8) + read(pointer);
 
@@ -1126,6 +1127,11 @@ uint8_t olc6502::NOP() {
 
 uint8_t olc6502::XXX() {
 	return 0;
+}
+
+bool olc6502::complete()
+{
+	return cycles == 0;
 }
 
 std::map<uint16_t, std::string> olc6502::disassemble(uint16_t nStart, uint16_t nStop)

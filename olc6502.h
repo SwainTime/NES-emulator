@@ -11,6 +11,7 @@ class olc6502 {
         olc6502();
         ~olc6502();
 
+        bool complete();
         // Produces a map of strings, with keys equivalent to instruction start locations in memory, for the specified address range
         std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop); 
         
@@ -32,7 +33,7 @@ class olc6502 {
         uint8_t x = 0x00; // X 
         uint8_t y = 0x00; // Y 
         uint8_t stp = 0x00; // Stack Pointer
-        uint8_t pc = 0x0000; // Program Counter
+        uint16_t pc = 0x0000; // Program Counter
         uint8_t status = 0x00; // Status 
 
         // Op codes
