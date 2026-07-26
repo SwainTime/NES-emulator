@@ -52,15 +52,15 @@ class olc6502 {
 
         // Clock ops
         void clock(); // How many CPU cycles remain to finish the current instruction (one call = one cycle)
-        void reset();
-        void irq();
-        void nmi();
+        void reset(); // Reset everything
+        void irq(); // Interrupt request
+        void nmi(); 
 
         uint8_t fetch();
         uint8_t fetched = 0x00;
-
+        uint16_t tempVal = 0x0000;
         uint16_t addrAbs = 0x0000;
-        uint16_t addrRel = 0x00;
+        uint16_t addrRel = 0x0000;
         uint8_t opCode = 0x00;
         uint8_t cycles = 0;
 
