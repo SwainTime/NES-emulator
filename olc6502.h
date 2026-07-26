@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
 #include <string>
-#include<vector>
+#include <vector>
+#include <map>
 
 class Bus;
 
@@ -9,6 +10,9 @@ class olc6502 {
     public:
         olc6502();
         ~olc6502();
+
+        // Produces a map of strings, with keys equivalent to instruction start locations in memory, for the specified address range
+        std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop); 
         
         //All flags
         enum FLAG6502 {
