@@ -32,5 +32,146 @@ uint8_t olc6502::read(uint16_t a) {
 }
 
 void olc6502::write(uint16_t a, uint8_t d) {
-    return bus->write(a, d); 
+    bus->write(a, d); 
+}
+
+void olc6502::clock() {
+    if(cycles == 0) {
+        opCode = read(pc);
+        pc++;
+
+        //starting nr of cycles of the operation
+        cycles = lookup[opCode].cycles;
+
+        auto addrMode = lookup[opCode].addrMode; 
+        uint8_t nrOfCyclesAddr = (this->*addrMode)(); 
+        
+        auto operate = lookup[opCode].operate;
+        uint8_t nrOfCyclesOperate = (this->*operate)();
+
+        cycles += (nrOfCyclesAddr & nrOfCyclesOperate);
+    }
+
+    cycles--;
+}
+
+uint8_t olc6502::getFlag(FLAG6502 f)
+{
+	if(status & f)
+        return 1;
+    return 0;
+}
+
+void olc6502::setFlag(FLAG6502 f, bool v) {
+    if(v == 1)
+        status |= f;
+    else
+        status &= ~f;
+}
+
+//Implementation of addressing modes
+
+uint8_t olc6502::IMP() {
+    fetched = accum;
+    return 0;
+}
+
+uint8_t olc6502::IMM() {
+    addrAbs = pc++;
+    return 0;
+}
+
+uint8_t olc6502::ZP0() {
+    addrAbs = read(pc++);
+    addrAbs &= 0x00FF;
+    return 0;
+}
+
+uint8_t olc6502::ZPX() {
+    addrAbs = read(pc++) + x;
+    addrAbs &= 0x00FF;
+    return 0;
+}
+
+uint8_t olc6502::ZPY() {
+    addrAbs = read(pc++) + y;
+    addrAbs &= 0x00FF;
+    return 0;
+}
+
+uint8_t olc6502::ABS() {
+    uint8_t lowBytes = read(pc++);
+    uint8_t highBytes = read(pc++);
+    addrAbs = (highBytes << 8) + lowBytes;
+    return 0;
+}
+
+uint8_t olc6502::ABX() {
+    uint16_t lowBytes = read(pc++);
+    uint16_t highBytes = read(pc++);
+    addrAbs = (highBytes << 8) + lowBytes;
+    addrAbs += x;
+
+
+    if((addrAbs & 0x00FF) != lowBytes)
+        return 1;
+    return 0;
+}
+
+uint8_t olc6502::ABY() {
+    uint16_t lowBytes = read(pc++);
+    uint16_t highBytes = read(pc++);
+    addrAbs = (highBytes << 8) + lowBytes;
+    addrAbs += y;
+
+
+    if((addrAbs & 0x00FF) != lowBytes)
+        return 1;
+    return 0;
+}
+
+uint8_t olc6502::IND() {
+    uint16_t lowBytes = read(pc++);
+    uint16_t highBytes = read(pc++);
+    uint16_t pointer = (highBytes << 8) + lowBytes;
+
+    if(lowBytes == 0x00FF)
+        addrAbs = (pointer & 0xFF00) << 8 + read(pointer); // Bug in hardware
+    else 
+        addrAbs = (read(pointer + 1) << 8) + read(pointer);
+
+    return 0;
+}
+
+uint8_t olc6502::IZX() {
+    uint16_t pointer = read(pc++);
+
+    uint16_t lowBytes = read((uint16_t)(pointer + (uint16_t)x) & 0x00FF);
+    uint16_t highBytes = read((uint16_t)(pointer + (uint16_t)x + 1) & 0x00FF);
+
+    addrAbs = (highBytes << 8) + lowBytes;
+
+    return 0;
+}
+
+uint8_t olc6502::IZY() {
+    uint16_t pointer = read(pc++);
+
+    uint16_t lowBytes = read(pointer & 0x00FF);
+    uint16_t highBytes = read((pointer + 1) & 0x00FF);
+
+    addrAbs = (highBytes << 8) + lowBytes;
+    addrAbs += y;
+
+    if((addrAbs & 0x00FF) != lowBytes)
+        return 1;
+    return 0;
+}
+
+uint8_t olc6502::REL() {
+    addrRel = read(pc++);
+
+    if(addrRel & 0x80)
+        addrRel |= 0xFF00;
+    return 0;
 }

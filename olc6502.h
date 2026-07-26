@@ -24,7 +24,7 @@ class olc6502 {
         };
 
         // Registers
-        uint8_t a = 0x00; // Accumulator
+        uint8_t accum = 0x00; // Accumulator
         uint8_t x = 0x00; // X 
         uint8_t y = 0x00; // Y 
         uint8_t stp = 0x00; // Stack Pointer
@@ -51,7 +51,7 @@ class olc6502 {
         uint8_t XXX();
 
         // Clock ops
-        void clock();
+        void clock(); // How many CPU cycles remain to finish the current instruction (one call = one cycle)
         void reset();
         void irq();
         void nmi();
@@ -59,9 +59,9 @@ class olc6502 {
         uint8_t fetch();
         uint8_t fetched = 0x00;
 
-        uint16_t addr_abs = 0x0000;
-        uint16_t addr_rel = 0x00;
-        uint8_t opcode = 0x00;
+        uint16_t addrAbs = 0x0000;
+        uint16_t addrRel = 0x00;
+        uint8_t opCode = 0x00;
         uint8_t cycles = 0;
 
         void connectBus(Bus *x) { bus = x; }
@@ -79,14 +79,14 @@ class olc6502 {
         uint8_t read(uint16_t a);
         void write(uint16_t a, uint8_t d);
 
-        //Helper functions
-        uint8_t getFlag(FLAG6502 f);
-        void setFlag(FLAG6502, bool v);
+        // Helper functions
+        uint8_t getFlag(FLAG6502 f); // Checks if a specific flag is set or not
+        void setFlag(FLAG6502, bool v); // Sets or clears a specific bit of the status register(0 or 1)
 
         struct INSTRUCTION {
             std::string name;
             uint8_t(olc6502::*operate)(void) = nullptr;
-            uint8_t(olc6502::*addrmode)(void) = nullptr;
+            uint8_t(olc6502::*addrMode)(void) = nullptr;
             uint8_t cycles = 0;
         };
         std::vector<INSTRUCTION> lookup;
