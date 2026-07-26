@@ -55,6 +55,66 @@ void olc6502::clock() {
     cycles--;
 }
 
+void olc6502::reset() {
+    accum = 0;
+    x = 0;
+    y = 0;
+    stp = 0xFD;
+    status = U;
+    fetched = 0x00;
+
+    addrAbs = 0xFFFC;
+    uint16_t lowBytes = read(addrAbs);
+    uint16_t highBytes = read(addrAbs + 1);
+    cycles = 8;
+}
+
+void olc6502::irq() {
+    if(getFlag(I) == 0) {
+        //It first writes the pc to the stack
+        write(0x0100 + stp, (pc >> 8) && 0x00FF);
+        stp--;
+        write(0x0100 + stp, pc >> 8 && 0x00FF);
+        stp--;
+
+        setFlag(B, 0);
+        setFlag(U, 1);
+        setFlag(I, 1);
+        write(0x0100 + stp, status);
+        stp--;
+
+        addrAbs = 0xFFFE;
+        uint16_t lowBytes = read(addrAbs);
+        uint16_t highBytes = read(addrAbs + 1);
+        pc = (highBytes << 8) | lowBytes;
+        
+        cycles = 7;
+    }
+}
+
+void olc6502::nmi() {
+    if(getFlag(I) == 0) {
+        //It first writes the pc to the stack
+        write(0x0100 + stp, (pc >> 8) && 0x00FF);
+        stp--;
+        write(0x0100 + stp, pc >> 8 && 0x00FF);
+        stp--;
+
+        setFlag(B, 0);
+        setFlag(U, 1);
+        setFlag(I, 1);
+        write(0x0100 + stp, status);
+        stp--;
+
+        addrAbs = 0xFFFA;
+        uint16_t lowBytes = read(addrAbs);
+        uint16_t highBytes = read(addrAbs + 1);
+        pc = (highBytes << 8) | lowBytes;
+        
+        cycles = 8;
+    }
+}
+
 uint8_t olc6502::getFlag(FLAG6502 f)
 {
 	if(status & f)
