@@ -19,14 +19,14 @@ class olc6502 {
 
         bool complete();
         // Produces a map of strings, with keys equivalent to instruction start locations in memory, for the specified address range
-        std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop); 
+        std::map<uint16_t, std::string> disassemble(uint16_t nStart, uint16_t nStop); // Copied directly from javidx9's olcNES source code.
         
         //All flags
         enum FLAG6502 {
             C = (1 << 0), // Carry Bit    
             Z = (1 << 1), // Zero  
             I = (1 << 2), // Disable Interrupts  
-            D = (1 << 3), // Decimal Mode (unused in this implementation)
+            D = (1 << 3), // Decimal Mode (not used)
             B = (1 << 4), // Break
             U = (1 << 5), // Unused  
             V = (1 << 6), // Overflow 
@@ -65,7 +65,7 @@ class olc6502 {
         void clock(); // How many CPU cycles remain to finish the current instruction (one call = one cycle)
         void reset(); // Reset everything
         void irq(); // Interrupt request
-        void nmi(); 
+        void nmi(); // Non-Maskable Interrupt(cannot be disabled, used for important events)
 
         uint8_t fetch();
         uint8_t fetched = 0x00;

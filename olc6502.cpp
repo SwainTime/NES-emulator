@@ -1140,6 +1140,7 @@ bool olc6502::complete()
 	return cycles == 0;
 }
 
+//Disassembler copied from the source code
 std::map<uint16_t, std::string> olc6502::disassemble(uint16_t nStart, uint16_t nStop)
 {
 	uint32_t addr = nStart;
