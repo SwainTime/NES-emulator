@@ -1,4 +1,6 @@
 #include "olc2C02.h"
+#include <memory>
+#include "Cartridge.h"
 
 // Helper function
 void casesCpu(uint16_t addr, uint8_t& data) {
@@ -49,4 +51,9 @@ uint8_t ppuRead(uint16_t addr, bool readOnly()) {
 void ppuWrite(uint16_t addr, uint8_t data) {
     //placeholder
     addr &= 0x3FFF;
+}
+
+void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {
+    this->cartridge = cartridge;
+    
 }

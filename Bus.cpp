@@ -36,5 +36,15 @@ uint8_t Bus::cpuRead(uint16_t addr, bool readOnly) {
     if(addr >= 0x2000 && addr <= 0x3FFF) //in this range it talks with the ppu
         ppu.cpuRead(addr & 0x0007, readOnly); // the CPU range of talking with PPU is only 8 bytes (8 PPU registers)
     
-    return 0x00;
+    return data;
+}
+
+void Bus::reset() {
+    cpu.reset();
+    sysClockTicks = 0;
+}
+
+void Bus::insertCartridge(const std::shared_ptr<Cartridge> &cartridge) {
+    this->cartridge = cartridge;
+    ppu.connectCartridge(cartridge);
 }
