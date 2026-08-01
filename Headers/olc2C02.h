@@ -6,6 +6,7 @@
 
 #pragma once
 #include<cstdint>
+#include <memory>
 
 class olc2C02 {
     public:

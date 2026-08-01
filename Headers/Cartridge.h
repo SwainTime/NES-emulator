@@ -6,6 +6,9 @@
 
 #pragma once
 #include <cstdint>
+#include <string>
+#include <vector>
+#include <fstream>
 
 class Cartridge {
     public:
@@ -15,10 +18,11 @@ class Cartridge {
     private:
         std::vector<uint8_t> PRGMemory; // Contain the game code and logic(CPU) // $8000-$FFFF
         std::vector<uint8_t> CHRMemory; // Contains tile and sprite graphic data(PPU) $0000-$1FFF
-        uint8_t mapperID = 0;
+        uint8_t mapperId = 0;
         uint8_t PRGBanks = 0;
         uint8_t CHRBanks = 0;
     
+    //reads and writes are boolean to tell the system whether the cartridge is handling the reads/writes
     public:
         // Communication with the main bus
         bool cpuRead(uint16_t addr, bool readOnly);

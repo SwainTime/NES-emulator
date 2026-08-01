@@ -41,16 +41,26 @@ uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
     return data;
 }
 
-uint8_t ppuRead(uint16_t addr, bool readOnly()) {
+uint8_t olc2C02::ppuRead(uint16_t addr, bool readOnly) {
     //placeholder
     uint8_t data = 0x00;
     addr &= 0x3FFF;
+ 
+    // prio co cartridge
+    if(cartridge -> ppuRead(addr, data)) {
+        
+    }
 
     return 0;
 }
-void ppuWrite(uint16_t addr, uint8_t data) {
+void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
     //placeholder
     addr &= 0x3FFF;
+
+    // prio to cartridge
+    if(cartridge -> ppuWrite(addr, data)) {
+        
+    }
 }
 
 void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {
