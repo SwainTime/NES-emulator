@@ -14,6 +14,7 @@ Cartridge::Cartridge(const std::string &fileName) {
         char unused[5];
     } header; // from the wiki
 
+    isImageValid = false;
     std::ifstream file;
     file.open(fileName, std::ifstream::binary);
     if(file.is_open()) {
@@ -29,17 +30,22 @@ Cartridge::Cartridge(const std::string &fileName) {
         if(fileType == 0) {
 
         }
-
-        if(fileType == 1) {
+        else if(fileType == 1) {
             prgBanks = header.prgRomChunks;
             prgMemory.resize(prgBanks * 16384); // resize it in prgBanks of 16384 bytes(16 KB)
             file.read((char*)prgMemory.data(), prgMemory.size()); // writes the data of the PRG memory
         }
-
-        if(fileType == 2) {
+        else if(fileType == 2) {
              
         }
+
+
+        // Load mapper based on id
+        if(mapperId == 0) {
+            mapper = std::make_shared<Mapper000>(prgBanks, chrBanks);
+        }
         
+        isImageValid = true;
         file.close(); 
     } 
 
@@ -47,4 +53,50 @@ Cartridge::Cartridge(const std::string &fileName) {
 
 Cartridge::~Cartridge() {
 
+}
+
+bool Cartridge::imageValid()
+{
+	return isImageValid;
+}
+
+bool Cartridge::cpuRead(uint16_t addr, uint8_t &data)
+{
+    uint32_t mappedAddr = 0;
+    if(mapper -> cpuMapRead(addr, mappedAddr)) {
+        data = prgMemory[mappedAddr];
+        return true;
+    }
+    return false;
+}
+
+bool Cartridge::cpuWrite(uint16_t addr, uint8_t data)
+{
+    uint32_t mappedAddr = 0;
+    if(mapper -> cpuMapRead(addr, mappedAddr)) {
+        prgMemory[mappedAddr] = data;
+        return true;
+    }
+    return false;
+}
+
+bool Cartridge::ppuRead(uint16_t addr, uint8_t &data)
+{
+    uint32_t mappedAddr = 0;
+    if(mapper -> ppuMapRead(addr, mappedAddr)) {
+        data = chrMemory[mappedAddr];
+        return true;
+    }
+
+    return false;
+}
+
+bool Cartridge::ppuWrite(uint16_t addr, uint8_t data)
+{
+    uint32_t mappedAddr = 0;
+    if(mapper -> ppuMapRead(addr, mappedAddr)) {
+        chrMemory[mappedAddr] = data;
+        return true;
+    }
+    return false;
 }
