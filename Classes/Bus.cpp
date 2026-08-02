@@ -35,14 +35,14 @@ uint8_t Bus::cpuRead(uint16_t addr, bool readOnly) {
     uint8_t data = 0x00;
 
     // give prio to cartridge
-    if(cartridge -> cpuRead(addr, readOnly)) {
+    if(cartridge -> cpuRead(addr, data)) {
         
     }
     else if(addr >= 0x0000 && addr <= 0x1FFF) // 8KB range that is mirrored every 2 KB
         data = cpuRam[addr & 0x07FF]; // basically does modulo 2KB
     
     else if(addr >= 0x2000 && addr <= 0x3FFF) //in this range it talks with the ppu
-        ppu.cpuRead(addr & 0x0007, readOnly); // the CPU range of talking with PPU is only 8 bytes (8 PPU registers)
+        data = ppu.cpuRead(addr & 0x0007, readOnly); // the CPU range of talking with PPU is only 8 bytes (8 PPU registers)
     
     return data;
 }
@@ -55,4 +55,12 @@ void Bus::reset() {
 void Bus::insertCartridge(const std::shared_ptr<Cartridge> &cartridge) {
     this->cartridge = cartridge;
     ppu.connectCartridge(cartridge);
+}
+
+void Bus::clock() {
+    ppu.clock();
+    if (sysClockTicks % 3 == 0) {
+        cpu.clock();
+    }
+    sysClockTicks++;
 }

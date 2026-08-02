@@ -2,9 +2,9 @@
 #include <memory>
 #include "Cartridge.h"
 
-olc2C02::olc2C02() {
-    // all colours the NES uses
-    palScreen[0x00] = olc::Pixel(84, 84, 84);
+olc2C02::olc2C02()
+{
+	palScreen[0x00] = olc::Pixel(84, 84, 84);
 	palScreen[0x01] = olc::Pixel(0, 30, 116);
 	palScreen[0x02] = olc::Pixel(8, 16, 144);
 	palScreen[0x03] = olc::Pixel(48, 0, 136);
@@ -79,6 +79,16 @@ olc2C02::olc2C02() {
 	sprPatternTable[1] = new olc::Sprite(128, 128);
 }
 
+
+olc2C02::~olc2C02()
+{
+	delete sprScreen;
+	delete sprNameTable[0];
+	delete sprNameTable[1];
+	delete sprPatternTable[0];
+	delete sprPatternTable[1];
+}
+
 // Helper function
 void casesCpu(uint16_t addr, uint8_t& data) {
 
@@ -111,12 +121,30 @@ void casesCpu(uint16_t addr, uint8_t& data) {
 	}
 }
 
-uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly)
+olc::Sprite& olc2C02::getScreen()
 {
+	return *sprScreen;
+}
+
+olc::Sprite & olc2C02::getNameTable(uint8_t i)
+{
+	return *sprNameTable[i];
+}
+
+olc::Sprite & olc2C02::getPatternTable(uint8_t i)
+{
+	return *sprPatternTable[i];
+}
+
+uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
     uint8_t data = 0x00;
     casesCpu(addr, data);
 
     return data;
+}
+
+void olc2C02::cpuWrite(uint16_t addr, uint8_t data) {
+    casesCpu(addr, data);
 }
 
 uint8_t olc2C02::ppuRead(uint16_t addr, bool readOnly) {
@@ -143,5 +171,24 @@ void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
 
 void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {
     this->cartridge = cartridge;
-    
+}
+
+void olc2C02::clock()
+{
+
+	// Fake some noise for now
+	sprScreen->SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
+
+	// Advance renderer - it never stops, it's relentless
+	cycle++;
+	if (cycle >= 341)
+	{
+		cycle = 0;
+		scanline++;
+		if (scanline >= 261)
+		{
+			scanline = -1;
+			frame_complete = true;
+		}
+	}
 }

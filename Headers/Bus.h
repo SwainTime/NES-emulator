@@ -40,6 +40,5 @@ class Bus {
 	    void clock(); // system tick
     
     private:
-        bool imageValid = false;
         uint32_t sysClockTicks = 0; // system clock ticks
 };
