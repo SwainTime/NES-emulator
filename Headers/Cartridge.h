@@ -16,11 +16,11 @@ class Cartridge {
         ~Cartridge();
 
     private:
-        std::vector<uint8_t> PRGMemory; // Contain the game code and logic(CPU) // $8000-$FFFF
-        std::vector<uint8_t> CHRMemory; // Contains tile and sprite graphic data(PPU) $0000-$1FFF
+        std::vector<uint8_t> prgMemory; // Contain the game code and logic(CPU) // $8000-$FFFF
+        std::vector<uint8_t> chrMemory; // Contains tile and sprite graphic data(PPU) $0000-$1FFF
         uint8_t mapperId = 0;
-        uint8_t PRGBanks = 0;
-        uint8_t CHRBanks = 0;
+        uint8_t prgBanks = 0;
+        uint8_t chrBanks = 0;
     
     //reads and writes are boolean to tell the system whether the cartridge is handling the reads/writes
     public:

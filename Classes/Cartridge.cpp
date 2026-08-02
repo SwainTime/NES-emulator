@@ -31,9 +31,9 @@ Cartridge::Cartridge(const std::string &fileName) {
         }
 
         if(fileType == 1) {
-            PRGBanks = header.prgRomChunks;
-            PRGMemory.resize(PRGBanks * 16384); // resize it in prgBanks of 16384 bytes(16 KB)
-            file.read((char*)PRGMemory.data(), PRGMemory.size()); // writes the data of the PRG memory
+            prgBanks = header.prgRomChunks;
+            prgMemory.resize(prgBanks * 16384); // resize it in prgBanks of 16384 bytes(16 KB)
+            file.read((char*)prgMemory.data(), prgMemory.size()); // writes the data of the PRG memory
         }
 
         if(fileType == 2) {

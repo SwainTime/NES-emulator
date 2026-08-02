@@ -1,9 +1,9 @@
 #include "Mapper.h"
 
-Mapper::Mapper(uint8_t prgBanks, uint8_t chrBanks)
-{
+Mapper::Mapper(uint8_t prgBanks, uint8_t chrBanks) {
+    this->prgBanks = prgBanks;
+    this->chrBanks = chrBanks;
 }
 
-Mapper::~Mapper()
-{
+Mapper::~Mapper() {
 }
