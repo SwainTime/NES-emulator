@@ -4,6 +4,7 @@
 
 olc2C02::olc2C02()
 {
+	// all colors the NES has
 	palScreen[0x00] = olc::Pixel(84, 84, 84);
 	palScreen[0x01] = olc::Pixel(0, 30, 116);
 	palScreen[0x02] = olc::Pixel(8, 16, 144);
@@ -176,10 +177,15 @@ void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {
 void olc2C02::clock()
 {
 
-	// Fake some noise for now
-	sprScreen->SetPixel(cycle - 1, scanline, palScreen[(rand() % 2) ? 0x3F : 0x30]);
+	// Fake some noise for placeholder
+	uint8_t randVal = rand();
+	if(randVal % 2 == 1)
+		sprScreen->SetPixel(cycle - 1, scanline, palScreen[0x3F]);
+	else
+		sprScreen->SetPixel(cycle - 1, scanline, palScreen[0x30]);
 
 	// Advance renderer - it never stops, it's relentless
+	// it goes throw 341 x 261 clock cycles to produce one complete video frame
 	cycle++;
 	if (cycle >= 341)
 	{
