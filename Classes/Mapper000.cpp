@@ -35,7 +35,7 @@ bool Mapper000::cpuMapWrite(uint16_t addr, uint32_t &mappedAddr) {
 }
 
 bool Mapper000::ppuMapRead(uint16_t addr, uint32_t &mappedAddr) {
-    if(addr >= 0x8000 && addr <= 0x1FFF) {
+    if(addr >= 0x0000 && addr <= 0x1FFF) {
         //here there is no bank switching
         mappedAddr = addr;
         return true;

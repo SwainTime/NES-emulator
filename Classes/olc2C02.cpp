@@ -112,7 +112,7 @@ olc::Sprite & olc2C02::getPatternTable(uint8_t i, uint8_t palette)
 				uint8_t  tileMsb = ppuRead(i * 0x1000 + offset + x + 8, false);
 
 				for (uint16_t y = 0; y < 8; y++) {
-					uint8_t pixel = (tileLsb & 0x01) + (tileMsb & 0x01); // we combine the least significant bits of each variable to get a value between 0 and 3
+					uint8_t pixel = ((tileMsb & 1) << 1) | (tileLsb & 1); // we combine the least significant bits of each variable to get a value between 0 and 3
 					tileLsb >>= 1;
 					tileMsb >>= 1;
 
@@ -167,7 +167,7 @@ uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
 			ppuDataBuffer = ppuRead(ppuAddress, readOnly);
 
 			if (ppuAddress > 0x3f00) data = ppuDataBuffer;
-
+			ppuAddress++; // auto - increment
 			break;
 	}
 
@@ -212,6 +212,7 @@ void olc2C02::cpuWrite(uint16_t addr, uint8_t data) {
             break;
         case 0x0007: // PPU Data
     		ppuWrite(ppuAddress, data);
+    		ppuAddress++;
             break;
 	}
 }
@@ -242,7 +243,7 @@ uint8_t olc2C02::ppuRead(uint16_t addr, bool readOnly) {
     	if (addr == 0x001C) addr = 0x000C;
 		data = paletteTable[addr];
     }
-    return 0;
+    return data;
 }
 void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
     //placeholder
@@ -253,7 +254,7 @@ void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
 	// 0x0000 -> 0x1FFF - pattern table
 	// 0x2000 -> 0x3EFF - name table
 	// 0x3F00 -> 0x3FFF - palette table
-	if(cartridge -> ppuRead(addr, data)) {
+	if(cartridge -> ppuWrite(addr, data)) {
 
 	} else if (addr >= 0x0000 && addr <= 0x1FFF) {
 		// usually a ROM, but in case it is a RAM
@@ -277,7 +278,9 @@ void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {
 
 void olc2C02::clock()
 {
-
+	if (scanline = 241 && cycle == 1) {
+		
+	}
 	// Fake some noise for placeholder
 	uint8_t randVal = rand();
 	if(randVal % 2 == 1)
