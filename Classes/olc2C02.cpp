@@ -90,38 +90,6 @@ olc2C02::~olc2C02()
 	delete sprPatternTable[1];
 }
 
-// Helper function
-void casesCpu(uint16_t addr, uint8_t& data) {
-
-    // Control - Controls PPU settings(nametables, sprite height, etc)
-    // Mask - Controls rendering options(background rendering, sprite rendering...)
-    // Status - Reads PPU state
-    // OAM address - sets the address pointer into OAM - the sprite memory where sprite informaton is stored
-    // OAM data - Reads/writes sprite data at the current OAM address. Each sprite has position, tile index, attributes
-    // Scroll - Sets the background scroll position(X and Y)
-    // PPU address - Sets the address for reading/writing PPU RAM
-    // PPU data - Reads/writes data from PPU RAM at the address set by PPU address. 
-    switch (addr)
-	{
-        case 0x0000: // Control
-            break;
-        case 0x0001: // Mask
-            break;
-        case 0x0002: // Status
-            break;
-        case 0x0003: // OAM Address
-            break;
-        case 0x0004: // OAM Data
-            break;
-        case 0x0005: // Scroll
-            break;
-        case 0x0006: // PPU Address
-            break;
-        case 0x0007: // PPU Data
-            break;
-	}
-}
-
 olc::Sprite& olc2C02::getScreen()
 {
 	return *sprScreen;
@@ -132,32 +100,148 @@ olc::Sprite & olc2C02::getNameTable(uint8_t i)
 	return *sprNameTable[i];
 }
 
-olc::Sprite & olc2C02::getPatternTable(uint8_t i)
+olc::Sprite & olc2C02::getPatternTable(uint8_t i, uint8_t palette)
 {
+	// these two fors iterate through the tiles
+	for (uint16_t tileX = 0; tileX < 16; tileX++) {
+		for (uint16_t tileY = 0; tileY < 16; tileY++) {
+			uint16_t offset = tileX * 256 + tileY * 16; // we multiply with 256 because each row in the pattern table is 256 bytes wide and then every tile is 16 bytes
+
+			for (uint16_t x = 0; x < 8; x++) {
+				uint8_t  tileLsb = ppuRead(i * 0x1000 + offset + x, false);
+				uint8_t  tileMsb = ppuRead(i * 0x1000 + offset + x + 8, false);
+
+				for (uint16_t y = 0; y < 8; y++) {
+					uint8_t pixel = (tileLsb & 0x01) + (tileMsb & 0x01); // we combine the least significant bits of each variable to get a value between 0 and 3
+					tileLsb >>= 1;
+					tileMsb >>= 1;
+
+					sprPatternTable[i] -> SetPixel(
+						tileX * 8 + (7 - y), // the first extracted pixel is the rightmost one
+						tileY  * 8 + x,
+						getColorFromPaletteRam(palette, pixel)
+					);
+				}
+			}
+		}
+	}
 	return *sprPatternTable[i];
 }
 
+olc::Pixel& olc2C02::getColorFromPaletteRam(uint8_t palette, uint8_t pixel) {
+	return palScreen[ppuRead(0x3F00 + (palette * 4) + pixel, false)];
+}
 uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
     uint8_t data = 0x00;
-    casesCpu(addr, data);
+
+	// Control - Controls PPU settings(nametables, sprite height, etc)
+	// Mask - Controls rendering options(background rendering, sprite rendering...)
+	// Status - Reads PPU state
+	// OAM address - sets the address pointer into OAM - the sprite memory where sprite informaton is stored
+	// OAM data - Reads/writes sprite data at the current OAM address. Each sprite has position, tile index, attributes
+	// Scroll - Sets the background scroll position(X and Y)
+	// PPU address - Sets the address for reading/writing PPU RAM
+	// PPU data - Reads/writes data from PPU RAM at the address set by PPU address.
+	switch (addr)
+	{
+		case 0x0000: // Control
+			break;
+		case 0x0001: // Mask
+			break;
+		case 0x0002: // Status
+			status.verticalBlank = 1;
+			data = (status.reg & 0xE0) | (ppuDataBuffer & 0x1F); // the top three bits are the status register, the bottom five bits are the last value on the data bus
+			status.verticalBlank = 0;
+			addressLatch = 0;
+			break;
+		case 0x0003: // OAM Address
+			break;
+		case 0x0004: // OAM Data
+			break;
+		case 0x0005: // Scroll
+			break;
+		case 0x0006: // PPU Address
+			break;
+		case 0x0007: // PPU Data
+			data = ppuDataBuffer;
+			ppuDataBuffer = ppuRead(ppuAddress, readOnly);
+
+			if (ppuAddress > 0x3f00) data = ppuDataBuffer;
+
+			break;
+	}
 
     return data;
 }
 
 void olc2C02::cpuWrite(uint16_t addr, uint8_t data) {
-    casesCpu(addr, data);
+    // Control - Controls PPU settings(nametables, sprite height, etc)
+    // Mask - Controls rendering options(background rendering, sprite rendering...)
+    // Status - Reads PPU state
+    // OAM address - sets the address pointer into OAM - the sprite memory where sprite informaton is stored
+    // OAM data - Reads/writes sprite data at the current OAM address. Each sprite has position, tile index, attributes
+    // Scroll - Sets the background scroll position(X and Y)
+    // PPU address - Sets the address for reading/writing PPU RAM
+    // PPU data - Reads/writes data from PPU RAM at the address set by PPU address.
+    switch (addr)
+	{
+        case 0x0000: // Control
+    		control.reg = data;
+            break;
+        case 0x0001: // Mask
+    		mask.reg = data;
+            break;
+        case 0x0002: // Status
+    		// can't write to the status
+            break;
+        case 0x0003: // OAM Address
+            break;
+        case 0x0004: // OAM Data
+            break;
+        case 0x0005: // Scroll
+            break;
+        case 0x0006: // PPU Address
+    		// write to either the low bytes or high bytes based on addressLatch.
+    		if (addressLatch == 0) {
+    			ppuAddress = (ppuAddress & 0x00FF) | (data << 8);
+    			addressLatch = 1;
+    		} else {
+    			ppuAddress = (ppuAddress & 0xFF00) | data;
+    			addressLatch = 0;
+    		}
+            break;
+        case 0x0007: // PPU Data
+    		ppuWrite(ppuAddress, data);
+            break;
+	}
 }
 
 uint8_t olc2C02::ppuRead(uint16_t addr, bool readOnly) {
-    //placeholder
     uint8_t data = 0x00;
     addr &= 0x3FFF;
  
-    // prio co cartridge
+    // first if: prio to cartridge
+	// 0x0000 -> 0x1FFF - pattern table
+	// 0x2000 -> 0x3EFF - name table
+	// 0x3F00 -> 0x3FFF - palette table
     if(cartridge -> ppuRead(addr, data)) {
-        
-    }
 
+    } else if (addr >= 0x0000 && addr <= 0x1FFF) {
+    	// if bit 12 of the address is 0, then it takes the leftside part(0x0000 -> 0x0FFFF), if it's 1, then it takes the rightside part(0x1000 -> 0x1FFF)
+    	// addr & 0x0FFF keeps only the lower bits
+		data = patternTable[(addr >> 12) & 0x0001][addr & 0x0FFF];
+
+    } else if (addr >= 0x2000 && addr <= 0x3EFF) {
+
+    } else if (addr >= 0x3F00 && addr <= 0x3FFF) {
+		addr &= 0x001F; // mask the bottom five bits
+    	// hard code the mirroring
+    	if (addr == 0x0010) addr = 0x0000;
+    	if (addr == 0x0014) addr = 0x0004;
+    	if (addr == 0x0018) addr = 0x0008;
+    	if (addr == 0x001C) addr = 0x000C;
+		data = paletteTable[addr];
+    }
     return 0;
 }
 void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
@@ -165,9 +249,26 @@ void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
     addr &= 0x3FFF;
 
     // prio to cartridge
-    if(cartridge -> ppuWrite(addr, data)) {
-        
-    }
+	// first if: prio to cartridge
+	// 0x0000 -> 0x1FFF - pattern table
+	// 0x2000 -> 0x3EFF - name table
+	// 0x3F00 -> 0x3FFF - palette table
+	if(cartridge -> ppuRead(addr, data)) {
+
+	} else if (addr >= 0x0000 && addr <= 0x1FFF) {
+		// usually a ROM, but in case it is a RAM
+		data = patternTable[(addr >> 12) & 0x0001][addr & 0x0FFF];
+	} else if (addr >= 0x2000 && addr <= 0x3EFF) {
+
+	} else if (addr >= 0x3F00 && addr <= 0x3FFF) {
+		addr &= 0x001F; // mask the bottom five bits
+		// hard code the mirroring
+		if (addr == 0x0010) addr = 0x0000;
+		if (addr == 0x0014) addr = 0x0004;
+		if (addr == 0x0018) addr = 0x0008;
+		if (addr == 0x001C) addr = 0x000C;
+		paletteTable[addr] = data;
+	}
 }
 
 void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {

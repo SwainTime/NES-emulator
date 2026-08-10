@@ -1,5 +1,5 @@
 /*
-	olc::NES - Part #3 - Buses, Rams, Roms & Mappers
+	olc::NES - Part #4 - Buses, Rams, Roms & Mappers
 	"Thanks Dad for believing computers were gonna be a big deal..." - javidx9
 
 	License (OLC-3)
@@ -36,7 +36,7 @@
 	OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-	Relevant Video: https://youtu.be/xdzOvpYPmGE
+	Relevant Video: https://youtu.be/-THeUXqR3zY
 
 	Links
 	~~~~~
@@ -70,14 +70,16 @@ class Demo_olc2C02 : public olc::PixelGameEngine
 public:
 	Demo_olc2C02() { sAppName = "olc2C02 Demonstration"; }
 
-private: 
+private:
 	// The NES
 	Bus nes;
 	std::shared_ptr<Cartridge> cart;
 	bool bEmulationRun = false;
 	float fResidualTime = 0.0f;
 
-private: 
+	uint8_t nSelectedPalette = 0x00;
+
+private:
 	// Support Utilities
 	std::map<uint16_t, std::string> mapAsm;
 
@@ -160,12 +162,13 @@ private:
 	{
 		// Load the cartridge
 		cart = std::make_shared<Cartridge>("../TESTING(COPIED)/nestest.nes");
+
 		if (!cart->imageValid())
 			return false;
 
 		// Insert into NES
 		nes.insertCartridge(cart);
-					
+
 		// Extract dissassembly
 		mapAsm = nes.cpu.disassemble(0x0000, 0xFFFF);
 
@@ -178,7 +181,9 @@ private:
 	{
 		Clear(olc::DARK_BLUE);
 
-		
+		if (GetKey(olc::Key::SPACE).bPressed) bEmulationRun = !bEmulationRun;
+		if (GetKey(olc::Key::R).bPressed) nes.reset();
+		if (GetKey(olc::Key::P).bPressed) (++nSelectedPalette) &= 0x07;
 
 		if (bEmulationRun)
 		{
@@ -217,12 +222,26 @@ private:
 		}
 
 
-		if (GetKey(olc::Key::SPACE).bPressed) bEmulationRun = !bEmulationRun;
-		if (GetKey(olc::Key::R).bPressed) nes.reset();		
+
 
 		DrawCpu(516, 2);
 		DrawCode(516, 72, 26);
 
+		// Draw Palettes & Pattern Tables ==============================================
+		const int nSwatchSize = 6;
+		for (int p = 0; p < 8; p++) // For each palette
+			for(int s = 0; s < 4; s++) // For each index
+				FillRect(516 + p * (nSwatchSize * 5) + s * nSwatchSize, 340,
+					nSwatchSize, nSwatchSize, nes.ppu.getColorFromPaletteRam(p, s));
+
+		// Draw selection reticule around selected palette
+		DrawRect(516 + nSelectedPalette * (nSwatchSize * 5) - 1, 339, (nSwatchSize * 4), nSwatchSize, olc::WHITE);
+
+		// Generate Pattern Tables
+		DrawSprite(516, 348, &nes.ppu.getPatternTable(0, nSelectedPalette));
+		DrawSprite(648, 348, &nes.ppu.getPatternTable(1, nSelectedPalette));
+
+		// Draw rendered output ========================================================
 		DrawSprite(0, 0, &nes.ppu.getScreen(), 2);
 		return true;
 	}
