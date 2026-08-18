@@ -37,8 +37,21 @@ Cartridge::Cartridge(const std::string &fileName) {
         }
         else if(fileType == 1) {
             prgBanks = header.prgRomChunks;
-            prgMemory.resize(prgBanks * 16384); // resize it in prgBanks of 16384 bytes(16 KB)
-            file.read((char*)prgMemory.data(), prgMemory.size()); // writes the data of the PRG memory
+            prgMemory.resize(prgBanks * 16384);
+            file.read((char*)prgMemory.data(), prgMemory.size());
+
+            chrBanks = header.chrRomChunks;
+            if (chrBanks == 0)
+            {
+                // Create CHR RAM
+                chrMemory.resize(8192);
+            }
+            else
+            {
+                // Allocate for ROM
+                chrMemory.resize(chrBanks * 8192);
+            }
+            file.read((char*)chrMemory.data(), chrMemory.size());
         }
         else if(fileType == 2) {
              

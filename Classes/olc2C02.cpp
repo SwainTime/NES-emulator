@@ -165,8 +165,8 @@ uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
 			data = ppuDataBuffer;
 			ppuDataBuffer = ppuRead(ppuAddress, readOnly);
 
-			if (ppuAddress > 0x3f00) data = ppuDataBuffer;
-			ppuAddress++; // auto - increment
+			if (ppuAddress >= 0x3F00) data = ppuDataBuffer;
+			ppuAddress += (control.incrementMode ? 32 : 1);
 			break;
 	}
 
@@ -211,7 +211,7 @@ void olc2C02::cpuWrite(uint16_t addr, uint8_t data) {
             break;
         case 0x0007: // PPU Data
     		ppuWrite(ppuAddress, data);
-    		ppuAddress++;
+    		ppuAddress += (control.incrementMode ? 32 : 1);
             break;
 	}
 }

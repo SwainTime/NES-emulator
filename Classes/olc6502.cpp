@@ -203,8 +203,8 @@ uint8_t olc6502::IND() {
     uint16_t pointer = (highBytes << 8) + lowBytes;
 
     if(lowBytes == 0x00FF)
-        addrAbs = ((pointer & 0xFF00) | read(pointer)); // Bug in hardware
-    else 
+        addrAbs = (read(pointer & 0xFF00) << 8) | read(pointer); // Bug in hardware
+    else
         addrAbs = (read(pointer + 1) << 8) + read(pointer);
 
     return 0;
