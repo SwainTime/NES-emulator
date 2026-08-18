@@ -95,4 +95,5 @@ class olc2C02 {
     public:
         void connectCartridge(const std::shared_ptr<Cartridge> &cartridge);
         void clock();
+        bool nmi = false;
 };

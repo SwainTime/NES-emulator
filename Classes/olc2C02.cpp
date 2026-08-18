@@ -149,7 +149,6 @@ uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
 		case 0x0001: // Mask
 			break;
 		case 0x0002: // Status
-			status.verticalBlank = 1;
 			data = (status.reg & 0xE0) | (ppuDataBuffer & 0x1F); // the top three bits are the status register, the bottom five bits are the last value on the data bus
 			status.verticalBlank = 0;
 			addressLatch = 0;
@@ -278,8 +277,15 @@ void olc2C02::connectCartridge(const std::shared_ptr<Cartridge> &cartridge) {
 
 void olc2C02::clock()
 {
-	if (scanline = 241 && cycle == 1) {
-		
+	if (scanline == -1 && cycle == 1) {
+		status.verticalBlank = 0;
+	}
+	if (scanline == 241 && cycle == 1) {
+		status.verticalBlank = 1;
+		if (control.enableNmi) {
+			nmi = true;
+
+		}
 	}
 	// Fake some noise for placeholder
 	uint8_t randVal = rand();

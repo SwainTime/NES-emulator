@@ -62,5 +62,11 @@ void Bus::clock() {
     if (sysClockTicks % 3 == 0) {
         cpu.clock();
     }
+
+    if (ppu.nmi) {
+        ppu.nmi = false;
+        cpu.nmi();
+    }
+
     sysClockTicks++;
 }
