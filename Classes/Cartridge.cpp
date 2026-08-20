@@ -30,6 +30,10 @@ Cartridge::Cartridge(const std::string &fileName) {
             file.ignore(512); // we treat it as junk
         
         mapperId = (header.mapper2 & 0xF0) | (header.mapper1 >> 4); // takes the upper 4 bit of mapper 1 and mapper 2 and merges them to create the mapper id
+        if ((header.mapper1 & 0x01) == 1)
+            mirror = VERTICAL;
+        else
+            mirror = HORIZONTAL;
 
         uint8_t fileType = 1;
         if(fileType == 0) {

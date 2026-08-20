@@ -31,6 +31,12 @@ class Cartridge {
     //reads and writes are boolean to tell the system whether the cartridge is handling the reads/writes
     public:
         bool imageValid();
+        enum MIRROR {
+            HORIZONTAL,
+            VERTICAL,
+            ONESCREENLO, // maps every nametable address to the first bank
+            ONESCREENHI, // maps every nametable address to the second bank (Think battletoads)
+        } mirror = HORIZONTAL; // default it Horizontal
         // Communication with the main bus
         bool cpuRead(uint16_t addr, uint8_t &data);
         bool cpuWrite(uint16_t addr, uint8_t data);

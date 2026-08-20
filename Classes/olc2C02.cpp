@@ -232,7 +232,28 @@ uint8_t olc2C02::ppuRead(uint16_t addr, bool readOnly) {
 		data = patternTable[(addr >> 12) & 0x0001][addr & 0x0FFF];
 
     } else if (addr >= 0x2000 && addr <= 0x3EFF) {
-
+    	// this is used for mirroring
+    	// the range can hold four nametables, but the console only has enough VRAM to hold two nametables, so mirroring dictates how these four nametables get put into the two memory banks
+    	if (cartridge -> mirror == Cartridge::MIRROR::VERTICAL) {
+    		if (addr >= 0x0000 && addr <= 0x03FF)
+    			data = nameTable[0][addr & 0x03FF];
+    		if (addr >= 0x0400 && addr <= 0x07FF)
+    			data = nameTable[1][addr & 0x03FF];
+    		if (addr >= 0x0800 && addr <= 0x0BFF)
+    			data = nameTable[0][addr & 0x03FF];
+    		if (addr >= 0x0C00 && addr <= 0x0FFF)
+    			data = nameTable[1][addr & 0x03FF];
+    	}
+    	else if (cartridge -> mirror == Cartridge::MIRROR::HORIZONTAL) {
+    		if (addr >= 0x0000 && addr <= 0x03FF)
+    			data = nameTable[0][addr & 0x03FF];
+    		if (addr >= 0x0400 && addr <= 0x07FF)
+    			data = nameTable[0][addr & 0x03FF];
+    		if (addr >= 0x0800 && addr <= 0x0BFF)
+    			data = nameTable[1][addr & 0x03FF];
+    		if (addr >= 0x0C00 && addr <= 0x0FFF)
+    			data = nameTable[1][addr & 0x03FF];
+    	}
     } else if (addr >= 0x3F00 && addr <= 0x3FFF) {
 		addr &= 0x001F; // mask the bottom five bits
     	// hard code the mirroring
@@ -259,7 +280,28 @@ void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
 		// usually a ROM, but in case it is a RAM
 		data = patternTable[(addr >> 12) & 0x0001][addr & 0x0FFF];
 	} else if (addr >= 0x2000 && addr <= 0x3EFF) {
-
+		// this is used for mirroring
+		// the range can hold four nametables, but the console only has enough VRAM to hold two nametables, so mirroring dictates how these four nametables get put into the two memory banks
+		if (cartridge -> mirror == Cartridge::MIRROR::VERTICAL) {
+			if (addr >= 0x0000 && addr <= 0x03FF)
+				data = nameTable[0][addr & 0x03FF];
+			if (addr >= 0x0400 && addr <= 0x07FF)
+				data = nameTable[1][addr & 0x03FF];
+			if (addr >= 0x0800 && addr <= 0x0BFF)
+				data = nameTable[0][addr & 0x03FF];
+			if (addr >= 0x0C00 && addr <= 0x0FFF)
+				data = nameTable[1][addr & 0x03FF];
+		}
+		else if (cartridge -> mirror == Cartridge::MIRROR::HORIZONTAL) {
+			if (addr >= 0x0000 && addr <= 0x03FF)
+				data = nameTable[0][addr & 0x03FF];
+			if (addr >= 0x0400 && addr <= 0x07FF)
+				data = nameTable[0][addr & 0x03FF];
+			if (addr >= 0x0800 && addr <= 0x0BFF)
+				data = nameTable[1][addr & 0x03FF];
+			if (addr >= 0x0C00 && addr <= 0x0FFF)
+				data = nameTable[1][addr & 0x03FF];
+		}
 	} else if (addr >= 0x3F00 && addr <= 0x3FFF) {
 		addr &= 0x001F; // mask the bottom five bits
 		// hard code the mirroring
