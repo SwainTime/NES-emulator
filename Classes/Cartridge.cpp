@@ -14,11 +14,6 @@ Cartridge::Cartridge(const std::string &fileName) {
         char unused[5];
     } header; // from the wiki
 
-    chrBanks = header.chrRomChunks;
-    if (chrBanks == 0)
-        chrMemory.resize(8192);   // CHR RAM case
-    else
-        chrMemory.resize(chrBanks * 8192);
     isImageValid = false;
     std::ifstream file;
     file.open(fileName, std::ifstream::binary);

@@ -78,6 +78,8 @@ olc2C02::olc2C02()
 	sprNameTable[1] = new olc::Sprite(256, 240);
 	sprPatternTable[0] = new olc::Sprite(128, 128);
 	sprPatternTable[1] = new olc::Sprite(128, 128);
+
+
 }
 
 
@@ -105,7 +107,7 @@ olc::Sprite & olc2C02::getPatternTable(uint8_t i, uint8_t palette)
 	// these two fors iterate through the tiles
 	for (uint16_t tileX = 0; tileX < 16; tileX++) {
 		for (uint16_t tileY = 0; tileY < 16; tileY++) {
-			uint16_t offset = tileX * 256 + tileY * 16; // we multiply with 256 because each row in the pattern table is 256 bytes wide and then every tile is 16 bytes
+			uint16_t offset = tileY * 256 + tileX * 16; // we multiply with 256 because each row in the pattern table is 256 bytes wide and then every tile is 16 bytes
 
 			for (uint16_t x = 0; x < 8; x++) {
 				uint8_t  tileLsb = ppuRead(i * 0x1000 + offset + x, false);
@@ -129,7 +131,7 @@ olc::Sprite & olc2C02::getPatternTable(uint8_t i, uint8_t palette)
 }
 
 olc::Pixel& olc2C02::getColorFromPaletteRam(uint8_t palette, uint8_t pixel) {
-	return palScreen[ppuRead(0x3F00 + (palette * 4) + pixel, false)];
+	return palScreen[ppuRead(0x3F00 + (palette * 4) + pixel, false) & 0x3F];
 }
 uint8_t olc2C02::cpuRead(uint16_t addr, bool readOnly) {
     uint8_t data = 0x00;
@@ -211,7 +213,7 @@ void olc2C02::cpuWrite(uint16_t addr, uint8_t data) {
             break;
         case 0x0007: // PPU Data
     		ppuWrite(ppuAddress, data);
-    		ppuAddress += (control.incrementMode ? 32 : 1);
+    		ppuAddress += (control.incrementMode ? 32 : 1); // 1 if horizontal, 32 if vertical, so that it skips 32 tils same as going down one row
             break;
 	}
 }
@@ -278,7 +280,7 @@ void olc2C02::ppuWrite(uint16_t addr, uint8_t data) {
 
 	} else if (addr >= 0x0000 && addr <= 0x1FFF) {
 		// usually a ROM, but in case it is a RAM
-		data = patternTable[(addr >> 12) & 0x0001][addr & 0x0FFF];
+		patternTable[(addr >> 12) & 0x0001][addr & 0x0FFF] = data;
 	} else if (addr >= 0x2000 && addr <= 0x3EFF) {
 		// this is used for mirroring
 		// the range can hold four nametables, but the console only has enough VRAM to hold two nametables, so mirroring dictates how these four nametables get put into the two memory banks
@@ -330,11 +332,11 @@ void olc2C02::clock()
 		}
 	}
 	// Fake some noise for placeholder
-	uint8_t randVal = rand();
-	if(randVal % 2 == 1)
-		sprScreen->SetPixel(cycle - 1, scanline, palScreen[0x3F]);
-	else
-		sprScreen->SetPixel(cycle - 1, scanline, palScreen[0x30]);
+	// uint8_t randVal = rand();
+	// if(randVal % 2 == 1)
+	// 	sprScreen->SetPixel(cycle - 1, scanline, palScreen[0x3F]);
+	// else
+	// 	sprScreen->SetPixel(cycle - 1, scanline, palScreen[0x30]);
 
 	// Advance renderer - it never stops, it's relentless
 	// it goes throw 341 x 261 clock cycles to produce one complete video frame
